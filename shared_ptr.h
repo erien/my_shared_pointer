@@ -1,5 +1,6 @@
 #include <cstddef>
 
+// Custom namespace for this implementation of shared_ptr
 namespace custom
 {
 	template <class T>
@@ -10,51 +11,66 @@ namespace custom
 	class custom::shared_ptr
 	{
 	public:
-		typedef T element_type;
+		typedef shared_ptr<T> MyT;
 
-		// construct empty shared_ptr
-		shared_ptr();
+		// Empty shared_ptr constructor
+		constexpr shared_ptr() : m_ptr(nullptr)
+		{
+		}
+
+		constexpr shared_ptr(std::nullptr_t) : m_ptr(nullptr)
+		{
+		}
 		
-		template<class Other>
-		explicit shared_ptr(Other * ptr);
+		// Construct shared_ptr from raw pointer
+		template<class Y>
+		explicit shared_ptr(Y * ptr)
+		{
+			m_ptr = ptr;
+			m_cnt = new RefCount;
+		}
 
-		template<class Other, class D>
-		shared_ptr(Other * ptr, D dtor);
+		template<class Y, class D>
+		shared_ptr(Y* ptr, D dtor);
 
-		~shared_ptr();
+		// Get the pointer
+		T* get() const noexcept
+		{
+			return m_ptr;
+		}
+
+		// Dereference operator
+		T& operator*() const noexcept
+		{
+			return (*this->get());
+		}
+
+		// Desctructor
+		~shared_ptr()
+		{
+		}
 
 	private:
-		struct rcount
+		struct RefCount
 		{
 			unsigned count;
 
-			rcount() : count(1)
+			RefCount() : count(1)
 			{
 			};
 		};
 
 		//points on resource
-		T *ptr;
+		T* m_ptr;
 
-		//points on reference counter
-		rcount *cnt;
+		// reference counter
+		RefCount* m_cnt;
+
 	};
 
 	template<class T>
-	template<class Other>
-	inline custom::shared_ptr<T>::shared_ptr()
-	{
-	}
-
-	template<class T>
-	template<class Other>
-	inline custom::shared_ptr<T>::shared_ptr(Other * ptr)
-	{
-	}
-
-	template<class T>
-	template<class Other, class D>
-	inline custom::shared_ptr<T>::shared_ptr(Other * ptr, D dtor)
+	template<class Y, class D>
+	inline custom::shared_ptr<T>::shared_ptr(Y * ptr, D dtor)
 	{
 	}
 
