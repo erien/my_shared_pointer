@@ -6,24 +6,33 @@ int main()
 {
 	{
 		int *test = new int(123);
-		int *test2 = new int(123);
+		int *test2 = new int(456);
 
 		// custom::shared_ptr
+
+		// empty pointers
 		custom::shared_ptr<int> csp0;
 		custom::shared_ptr<int> csp1(nullptr);
-		custom::shared_ptr<int> csp2(test);
-		custom::shared_ptr<int> csp3(csp2);
+		std::cout << "custom::shared_ptr0 use count test: " << (csp0.use_count() == 0) << std::endl;
+		std::cout << "custom::shared_ptr1 use count test: " << (csp1.use_count()  == 0) << std::endl;
 
+		// constructed from raw pointers
+		custom::shared_ptr<int> csp2(new int(123));
+		custom::shared_ptr<int> csp3(new int (456));
+		std::cout << "custom::shared_ptr2 use count test: " << (csp2.use_count() == 1) << std::endl;
+		std::cout << "custom::shared_ptr3 use count test: " << (csp3.use_count() == 1) << std::endl;
 
-		std::cout << "custom::shared_ptr0 use count: " << csp0.use_count() << std::endl;
-		std::cout << "custom::shared_ptr1 use count: " << csp1.use_count() << std::endl;
-		std::cout << "custom::shared_ptr2 use count: " << csp2.use_count() << std::endl;
-		std::cout << "custom::shared_ptr3 use count: " << csp3.use_count() << std::endl;
-		std::cout << (csp2 == csp3) << std::endl;
+		// comparison
+		std::cout << "csp2 == csp3 " << ((csp2 == csp3) == 0)<< std::endl;
 
+		//dereference
 		std::cout << "custom::shared_ptr2 deref: " << *csp2 << std::endl;
 		std::cout << "custom::shared_ptr3 deref:" << *csp3 << std::endl;
 
+		//swap
+		csp2.swap(csp3);
+		std::cout << "custom::shared_ptr2 deref after swap: " << *csp2 << std::endl;
+		std::cout << "custom::shared_ptr3 deref after swap:" << *csp3 << std::endl;
 
 		// std::shared_ptr
 		std::shared_ptr<int> sp0;
