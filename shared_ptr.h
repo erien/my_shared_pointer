@@ -8,6 +8,71 @@ namespace custom
 	class shared_ptr;
 }
 
+// Reference Counter class template
+template<class T, class Deleter = std::default_delete<T>>
+class RefCount
+{
+public:
+	// construct empty
+	RefCount() : m_ptr(nullptr), m_uses(0), m_customDeleter(false)
+	{
+	}
+
+	// construct with default deleter
+	RefCount(T* ptr) : m_ptr(ptr), m_uses(1), m_customDeleter(false)
+	{
+	}
+
+	// construct with custom deleter
+	RefCount(T* ptr, Deleter d) : m_ptr(ptr), m_uses(1), m_d(d), m_customDeleter(true)
+	{
+	}
+	
+	void increment()
+	{
+		++m_uses;
+	}
+
+	long decrement()
+	{
+		if (m_uses)
+		{
+			return --m_uses;
+		}
+		return m_uses;
+	}
+
+	const long useCount() const
+	{
+		return m_uses;
+	}
+
+	~RefCount()
+	{
+		std::cout << "Ref count deleter working" << std::endl;
+		if (m_customDeleter)
+		{
+			m_d(m_ptr);
+		}
+		else
+		{
+			delete m_ptr;
+		}
+	}
+
+private:
+	// Use counter of managed resource
+	long m_uses;
+
+	// Pointer on resource
+	T* m_ptr;
+
+	// Resource deleter
+	Deleter m_d;
+
+	bool m_customDeleter;
+};
+
 	// Template class for custom::shared_ptr
 	template <class T>
 	class custom::shared_ptr
@@ -29,17 +94,14 @@ namespace custom
 		// Cannot figure out if other shared_ptr already points to ptr,
 		// so each time RefCount is instantiated
 		template<class Y>
-		explicit shared_ptr(Y * ptr) : m_ptr(ptr), m_refCount(ptr ? new RefCount<Y> : nullptr)
+		explicit shared_ptr(Y * ptr) : m_ptr(ptr), m_refCount(ptr ? new RefCount<T>(ptr) : nullptr)
 		{
-			m_refCount->increment();
-			// if allocation failed - delete the resource?
 		}
 
 		// Construct shared_ptr from raw pointer with custom deleter
-		template< class Deleter>
-		shared_ptr(T* ptr, Deleter d)
+		template<class Deleter>
+		shared_ptr(T* ptr, Deleter d) : m_ptr(ptr), m_refCount(ptr ? new RefCountD<T, Deleter>(ptr) : nullptr)
 		{
-
 		}
 
 		// Construct shared_ptr that owns same resource as other
@@ -68,7 +130,7 @@ namespace custom
 		shared_ptr<T>& operator=(const shared_ptr<T>& rhs) noexcept
 		{
 			shared_ptr<T>(rhs).swap(*this);
-			return (*this);
+			return *this;
 		}
 
 		// Assignment operator - assign shared ownership of resource owned by rhs
@@ -76,14 +138,14 @@ namespace custom
 		shared_ptr<T>& operator=(const shared_ptr<Y>& rhs) noexcept
 		{
 			shared_ptr<T>(rhs).swap(*this);
-			return (*this);
+			return *this;
 		}
 
 		// Assignment operator - move-assign shared resource from rhs
 		shared_ptr<T>& operator=(shared_ptr<T>&& rhs) noexcept
 		{
 			shared_ptr<T>(std::move(rhs)).swap(*this);
-			return (*this);
+			return *this;
 		}
 
 		// Assignment operator - move-assign shared resource from rhs
@@ -91,7 +153,7 @@ namespace custom
 		shared_ptr<T>& operator=(shared_ptr<Y>&& rhs) noexcept
 		{
 			shared_ptr<T>(std::move(rhs)).swap(*this);
-			return (*this);
+			return *this;
 		}
 
 		// Assignment operator 
@@ -99,7 +161,7 @@ namespace custom
 		shared_ptr<T>& operator=(std::auto_ptr<Y>&& rhs)
 		{
 			shared_ptr<T>(std::move(rhs)).swap(*this);
-			return (*this);
+			return *this;
 		}
 
 		// Assignment operator 
@@ -107,7 +169,7 @@ namespace custom
 		shared_ptr<T>& operator=(std::unique_ptr<Y, Deleter>&& rhs)
 		{
 			shared_ptr<T>(std::move(rhs)).swap(*this);
-			return (*this);
+			return *this;
 		}
 
 		// checks if there is associated managed object 
@@ -180,51 +242,14 @@ namespace custom
 		{
 			if (m_ptr && m_refCount && m_refCount->decrement() == 0)
 			{
-				delete m_ptr;
+				std::cout << "smart pointer deleter working" << std::endl;
+				//delete m_ptr;
 				delete m_refCount;	
 			}
 		}
 
 	private:
-		// Reference Counter class
-		template<class T>
-		class RefCount
-		{
-		public:
-			RefCount() : m_uses(0)
-			{
-			}
-
-			void increment()
-			{
-				++m_uses;
-			}
-
-			long decrement()
-			{
-				if (m_uses)
-				{
-					return --m_uses;
-				}
-				return m_uses;
-			}
-
-			const long useCount() const
-			{
-				return m_uses;
-			}
-
-			~RefCount()
-			{
-			}
-
-		private:
-			// Use counter of managed resource
-			long m_uses;
-		};
-
-
-		//points on resource
+		// Pointer on resource
 		T* m_ptr;
 
 		// reference counter
