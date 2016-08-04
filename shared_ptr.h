@@ -1,4 +1,4 @@
-#include <cstddef>
+#include <memory>
 #include <algorithm>
 
 // Custom namespace for this implementation of shared_ptr
@@ -49,17 +49,18 @@ public:
 
 	~RefCount()
 	{
-		std::cout << "Ref count deleter working" << std::endl;
-		if (m_customDeleter)
+		if (m_ptr)
 		{
-			m_d(m_ptr);
-		}
-		else
-		{
-			delete m_ptr;
+			if (m_customDeleter)
+			{
+				m_d(m_ptr);
+			}
+			else
+			{
+				delete m_ptr;
+			}
 		}
 	}
-
 private:
 	// Use counter of managed resource
 	long m_uses;
@@ -242,7 +243,6 @@ private:
 		{
 			if (m_ptr && m_refCount && m_refCount->decrement() == 0)
 			{
-				std::cout << "smart pointer deleter working" << std::endl;
 				//delete m_ptr;
 				delete m_refCount;	
 			}
