@@ -9,23 +9,20 @@ namespace custom
 }
 
 // Reference Counter class template
-template<class T, class Deleter = std::default_delete<T>>
-class RefCount
+template<class T>
+class RefCountBase
 {
 public:
 	// construct empty
-	RefCount() : m_ptr(nullptr), m_uses(0), m_customDeleter(false)
+	RefCountBase() : m_ptr(nullptr), m_uses(0)
 	{
 	}
 
 	// construct with default deleter
-	RefCount(T* ptr) : m_ptr(ptr), m_uses(1), m_customDeleter(false)
+	RefCountBase(T* ptr) : m_ptr(ptr), m_uses(1)
 	{
-	}
-
-	// construct with custom deleter
-	RefCount(T* ptr, Deleter d) : m_ptr(ptr), m_uses(1), m_d(d), m_customDeleter(true)
-	{
+		// debug
+		// std::cout << "Call base construct " << this->m_ptr << std::endl;
 	}
 	
 	void increment()
@@ -47,31 +44,48 @@ public:
 		return m_uses;
 	}
 
-	~RefCount()
+	virtual ~RefCountBase()
 	{
 		if (m_ptr)
 		{
-			if (m_customDeleter)
-			{
-				m_d(m_ptr);
-			}
-			else
-			{
-				delete m_ptr;
-			}
+			// debug
+			// std::cout << "Call base delete on " << m_ptr << std::endl;
+			delete m_ptr;
 		}
 	}
-private:
+protected:
 	// Use counter of managed resource
 	long m_uses;
 
 	// Pointer on resource
 	T* m_ptr;
+};
 
-	// Resource deleter
+
+// Reference Counter with Deleter class template
+template<class T, class Deleter>
+class RefCountDel : public RefCountBase<T>
+{
+public:
+	// construct with custom deleter
+	RefCountDel(T* ptr, Deleter d) : RefCountBase(ptr), m_d(d)
+	{
+	}
+
+	~RefCountDel()
+	{
+		if (m_ptr)
+		{
+			// debug
+			// std::cout << "Call CUSTOM delete on " << this->m_ptr << std::endl;
+			m_d(m_ptr);
+			// make sure that base destructor won't try to delestroy m_ptr again
+			m_ptr = nullptr;
+		}
+	}
+private:
+	// Deleter
 	Deleter m_d;
-
-	bool m_customDeleter;
 };
 
 	// Template class for custom::shared_ptr
@@ -90,18 +104,24 @@ private:
 		constexpr shared_ptr(std::nullptr_t) : m_ptr(nullptr), m_refCount(nullptr)
 		{
 		}
+
+		// Empty shared_ptr constructor with deleter
+		template<class Deleter>
+		constexpr shared_ptr(std::nullptr_t, Deleter d) : m_ptr(nullptr), m_refCount(nullptr)
+		{
+		}
 		
 		// Construct shared_ptr from raw pointer
 		// Cannot figure out if other shared_ptr already points to ptr,
 		// so each time RefCount is instantiated
 		template<class Y>
-		explicit shared_ptr(Y * ptr) : m_ptr(ptr), m_refCount(ptr ? new RefCount<T>(ptr) : nullptr)
+		explicit shared_ptr(Y * ptr) : m_ptr(ptr), m_refCount(ptr ? new RefCountBase<T>(ptr) : nullptr)
 		{
 		}
 
 		// Construct shared_ptr from raw pointer with custom deleter
-		template<class Deleter>
-		shared_ptr(T* ptr, Deleter d) : m_ptr(ptr), m_refCount(ptr ? new RefCountD<T, Deleter>(ptr) : nullptr)
+		template<class Y, class Deleter>
+		shared_ptr(Y* ptr, Deleter d) : m_ptr(ptr), m_refCount(ptr ? new RefCountDel<T, Deleter>(ptr, d) : nullptr)
 		{
 		}
 
@@ -253,7 +273,7 @@ private:
 		T* m_ptr;
 
 		// reference counter
-		RefCount<T>* m_refCount;
+		RefCountBase<T>* m_refCount;
 	};
 
 	// Comparison operator

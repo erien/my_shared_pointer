@@ -138,3 +138,78 @@ void swap_pointers()
 		testFailed(testName);
 	}
 }
+
+void custom_obj()
+{
+	std::string testName = "custom object constructor";
+	custom::shared_ptr<TestObjBase> csp1(new TestObj);
+	custom::shared_ptr<TestObjBase> csp2(csp1);
+
+	if (csp1 && csp2 && csp1 == csp2)
+	{
+		testPassed(testName);
+	}
+	else
+	{
+		testFailed(testName);
+	}
+}
+
+void custom_obj_deleter()
+{
+	std::string testName = "custom obj constructor with deleter";
+	custom::shared_ptr<TestObjBase> csp(new TestObj, TestObjD());
+	if (csp && csp.use_count() == 1)
+	{
+		testPassed(testName);
+	}
+	else
+	{
+		testFailed(testName);
+	}
+}
+
+void custom_int_deleter()
+{
+	std::string testName = "custom int constructor with deleter";
+	custom::shared_ptr<int> csp(new int, intD());
+	if (csp && csp.use_count() == 1)
+	{
+		testPassed(testName);
+	}
+	else
+	{
+		testFailed(testName);
+	}
+}
+
+void custom_empty_int_deleter()
+{
+	std::string testName = "custom empty int constructor with deleter";
+	custom::shared_ptr<int> csp(nullptr, intD());
+	custom::shared_ptr<int> csp1(new int, intD());
+	if (!csp && csp.use_count() == 0)
+	{
+		testPassed(testName);
+	}
+	else
+	{
+		testFailed(testName);
+	}
+}
+
+void assign_custom_empty_int_deleter()
+{
+	std::string testName = "assign to custom empty int constructor with deleter";
+	custom::shared_ptr<int> csp(nullptr, intD());
+	custom::shared_ptr<int> csp1(new int, intD());
+	csp = csp1;
+	if (csp && csp1 && csp.use_count() == 2 && csp1.use_count() == 2)
+	{
+		testPassed(testName);
+	}
+	else
+	{
+		testFailed(testName);
+	}
+}
