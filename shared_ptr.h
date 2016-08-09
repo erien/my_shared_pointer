@@ -24,6 +24,12 @@ public:
 		// debug
 		// std::cout << "Call base construct " << this->m_ptr << std::endl;
 	}
+
+	RefCountBase(T* ptr, RefCountBase &ref) : m_ptr(ptr), m_uses(1)
+	{
+		// debug
+		// std::cout << "Call base construct " << this->m_ptr << std::endl;
+	}
 	
 	void increment()
 	{
@@ -88,6 +94,41 @@ private:
 	Deleter m_d;
 };
 
+// Reference Counter with Deleter and Allocator class template
+template<class T, class Deleter, class Allocator>
+class RefCountAlloc : public RefCountBase<T>
+{
+public:
+	typedef RefCountAlloc<T, Deleter, Allocator> refType;
+	typedef typename Allocator::template rebind<refType>::other AllocType;
+
+	RefCountAlloc()
+	{
+
+	}
+
+	// construct with custom deleter and allocatore
+	RefCountAlloc(T* ptr, Deleter d, const Allocator& alloc) : RefCountBase(ptr), m_alloc(alloc)
+	{
+		refType *ref = m_alloc.allocate(1);
+		m_alloc.construct(ref, 1);
+	}
+
+	~RefCountAlloc()
+	{
+		AllocType allocT = m_alloc;
+		allocT.destroy(this);
+		allocT.deallocate(this, 1);
+	}
+
+private:
+	// Allocator
+	AllocType m_alloc;
+
+	// Deleter
+	Deleter m_d;
+};
+
 	// Template class for custom::shared_ptr
 	template <class T>
 	class custom::shared_ptr
@@ -122,6 +163,13 @@ private:
 		// Construct shared_ptr from raw pointer with custom deleter
 		template<class Y, class Deleter>
 		shared_ptr(Y* ptr, Deleter d) : m_ptr(ptr), m_refCount(ptr ? new RefCountDel<T, Deleter>(ptr, d) : nullptr)
+		{
+		}
+
+		// Construct shared_ptr from raw pointer with custom deleter and allocator
+		template<class Y, class Deleter, class Allocator>
+		shared_ptr(Y* ptr, Deleter d, Allocator a) 
+			: m_ptr(ptr), m_refCount(ptr ? new RefCountAlloc<T, Deleter, Allocator>(ptr, d, a) : nullptr)
 		{
 		}
 

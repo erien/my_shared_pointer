@@ -172,7 +172,7 @@ void custom_obj_deleter()
 void custom_int_deleter()
 {
 	std::string testName = "custom int constructor with deleter";
-	custom::shared_ptr<int> csp(new int, intD());
+	custom::shared_ptr<int> csp(new int, TestDeleter<int>());
 	if (csp && csp.use_count() == 1)
 	{
 		testPassed(testName);
@@ -186,8 +186,8 @@ void custom_int_deleter()
 void custom_empty_int_deleter()
 {
 	std::string testName = "custom empty int constructor with deleter";
-	custom::shared_ptr<int> csp(nullptr, intD());
-	custom::shared_ptr<int> csp1(new int, intD());
+	custom::shared_ptr<int> csp(nullptr, TestDeleter<int>());
+	custom::shared_ptr<int> csp1(new int, TestDeleter<int>());
 	if (!csp && csp.use_count() == 0)
 	{
 		testPassed(testName);
@@ -201,10 +201,24 @@ void custom_empty_int_deleter()
 void assign_custom_empty_int_deleter()
 {
 	std::string testName = "assign to custom empty int constructor with deleter";
-	custom::shared_ptr<int> csp(nullptr, intD());
-	custom::shared_ptr<int> csp1(new int, intD());
+	custom::shared_ptr<int> csp(nullptr, TestDeleter<int>());
+	custom::shared_ptr<int> csp1(new int, TestDeleter<int>());
 	csp = csp1;
 	if (csp && csp1 && csp.use_count() == 2 && csp1.use_count() == 2)
+	{
+		testPassed(testName);
+	}
+	else
+	{
+		testFailed(testName);
+	}
+}
+
+void custom_int_allocator()
+{
+	std::string testName = "custom int constructor with deleter and allocator";
+	custom::shared_ptr<TestObjBase> csp(new TestObjBase(), TestDeleter<TestObjBase>(), TestAllocator<TestObjBase>() );
+	if (csp && csp.use_count() == 1)
 	{
 		testPassed(testName);
 	}
