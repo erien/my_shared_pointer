@@ -4,6 +4,9 @@
 #include "shared_ptr.h"
 #include <iostream>
 #include <string>
+#include <thread>
+#include <chrono>
+#include <mutex>
 
 struct TestObjBase
 {
@@ -34,17 +37,8 @@ struct TestObj : public TestObjBase
 	int id;
 };
 
-struct TestObjD 
-{
-	void operator()(TestObjBase* p) const 
-	{
-		// std::cout << "Custom deleter for TestObj object." << std::endl;
-		delete p;
-	}
-};
-
 template <class T>
-struct TestDeleter 
+struct TestDeleter
 {
 	void operator()(T* p) const 
 	{
@@ -53,59 +47,7 @@ struct TestDeleter
 	}
 };
 
-//template <class T>
-//class TestAllocator
-//{
-//public:
-//
-//	typedef T value_type;
-//
-//	TestAllocator(/*ctor args*/)
-//	{
-//		std::cout << "allocator constructor" << std::endl;
-//	}
-//	
-//	template <class U> 
-//	TestAllocator(const TestAllocator<U>& other)
-//	{
-//		std::cout << "allocator constructor" << std::endl;
-//	}
-//	
-//	T* allocate(std::size_t n)
-//	{
-//		T *p ;
-//		return p;
-//	}
-//
-//	void construct(T* p, std::size_t n)
-//	{
-//	}
-//
-//	void destroy(T* p)
-//	{
-//	}
-//	
-//	void deallocate(T* p, std::size_t n)
-//	{
-//		delete p;
-//	}
-//
-//	template <class U>
-//	struct rebind
-//	{
-//		typedef TestAllocator<U> other;
-//	};
-//};
-
-//template <class T, class U>
-//bool operator==(const TestAllocator<T>&, const TestAllocator<U>&)
-//{
-//}
-//
-//template <class T, class U>
-//bool operator!=(const TestAllocator<T>&, const TestAllocator<U>&)
-//{
-//}
+void thr(custom::shared_ptr<TestObj> p);
 
 // print out success
 void testPassed(std::string testName = "unnamed");
@@ -151,5 +93,9 @@ void custom_empty_int_deleter();
 void assign_custom_empty_int_deleter();
 
 void custom_int_allocator();
+
+void multitrhreaded_counter();
+
+void std_multitrhreaded_counter();
 
 #endif // !TEST_H

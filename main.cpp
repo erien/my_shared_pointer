@@ -1,6 +1,5 @@
 #include "tests.h"
 #include <cstdlib>
-#include <vector>
 
 int main()
 {
@@ -30,7 +29,11 @@ int main()
 
 	assign_custom_empty_int_deleter();
 	
-	//custom_int_allocator();
+	custom_int_allocator();
+
+	multitrhreaded_counter();
+
+	//std_multitrhreaded_counter();
 
 	system("PAUSE");
 }

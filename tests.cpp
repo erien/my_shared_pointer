@@ -158,7 +158,7 @@ void custom_obj()
 void custom_obj_deleter()
 {
 	std::string testName = "custom obj constructor with deleter";
-	custom::shared_ptr<TestObjBase> csp(new TestObj, TestObjD());
+	custom::shared_ptr<TestObj> csp(new TestObj, TestDeleter<TestObj>());
 	if (csp && csp.use_count() == 1)
 	{
 		testPassed(testName);
@@ -229,4 +229,73 @@ void custom_int_allocator()
 	{
 		testFailed(testName);
 	}
+}
+
+void thr(custom::shared_ptr<TestObj> p)
+{
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	// should be thread-safe, even though the shared use_count is incremented:
+	custom::shared_ptr<TestObj> lp = p; 
+	{
+		static std::mutex io_mutex;
+		std::lock_guard<std::mutex> lk(io_mutex);
+		std::cout << "local pointer in a thread:" << std::endl;
+		std::cout << "lp.get() = " << lp.get() << std::endl;
+		std::cout << "lp.use_count() = " << lp.use_count() << std::endl;
+	}
+}
+
+void multitrhreaded_counter()
+{
+	std::string testName = "multithreaded use count";
+	custom::shared_ptr<TestObj> sp(new TestObj());
+
+	std::cout << "sp: " << std::endl;
+	std::cout << "sp.get() = " << sp.get() << std::endl;
+	std::cout << "sp.use_count() = " << sp.use_count() << std::endl;
+
+	std::thread t1(thr, sp), t2(thr, sp), t3(thr, sp);
+	sp.reset(); // release ownership from main
+
+	std::cout << "Shared ownership between 3 threads and released ownership from main:" << std::endl;
+	std::cout << "sp.get() = " << sp.get() << std::endl;
+	std::cout << "sp.use_count() = " << sp.use_count() << std::endl;
+
+	t1.join(); t2.join(); t3.join();
+	std::cout << "All threads completed, the last one deleted TestObj" << std::endl;
+}
+
+
+void sthr(std::shared_ptr<TestObj> p)
+{
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	// should be thread-safe, even though the shared use_count is incremented:
+	std::shared_ptr<TestObj> lp = p;
+	{
+		static std::mutex io_mutex;
+		std::lock_guard<std::mutex> lk(io_mutex);
+		std::cout << "local pointer in a thread:" << std::endl;
+		std::cout << "lp.get() = " << lp.get() << std::endl;
+		std::cout << "lp.use_count() = " << lp.use_count() << std::endl;
+	}
+}
+
+void std_multitrhreaded_counter()
+{
+
+	std::shared_ptr<TestObj> sp(new TestObj());
+
+	std::cout << "sp: " << std::endl;
+	std::cout << "sp.get() = " << sp.get() << std::endl;
+	std::cout << "sp.use_count() = " << sp.use_count() << std::endl;
+
+	std::thread t1(sthr, sp), t2(sthr, sp), t3(sthr, sp);
+	sp.reset(); // release ownership from main
+
+	std::cout << "Shared ownership between 3 threads and released ownership from main:" << std::endl;
+	std::cout << "sp.get() = " << sp.get() << std::endl;
+	std::cout << "sp.use_count() = " << sp.use_count() << std::endl;
+
+	t1.join(); t2.join(); t3.join();
+	std::cout << "All threads completed, the last one deleted TestObj" << std::endl;
 }
