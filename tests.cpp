@@ -217,7 +217,10 @@ void assign_custom_empty_int_deleter()
 void custom_int_allocator()
 {
 	std::string testName = "custom int constructor with deleter and allocator";
-	custom::shared_ptr<TestObjBase> csp(new TestObjBase(), TestDeleter<TestObjBase>(), TestAllocator<TestObjBase>() );
+	int *ptr = new int(123);
+	std::allocator<int> alloc;
+	std::default_delete<int> del;
+	custom::shared_ptr<int> csp(ptr, del, alloc);
 	if (csp && csp.use_count() == 1)
 	{
 		testPassed(testName);

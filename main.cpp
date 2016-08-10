@@ -1,5 +1,6 @@
 #include "tests.h"
 #include <cstdlib>
+#include <vector>
 
 int main()
 {
@@ -29,7 +30,7 @@ int main()
 
 	assign_custom_empty_int_deleter();
 	
-	custom_int_allocator();
-	
+	//custom_int_allocator();
+
 	system("PAUSE");
 }

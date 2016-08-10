@@ -99,31 +99,18 @@ template<class T, class Deleter, class Allocator>
 class RefCountAlloc : public RefCountBase<T>
 {
 public:
-	typedef RefCountAlloc<T, Deleter, Allocator> refType;
-	typedef typename Allocator::template rebind<refType>::other AllocType;
-
-	RefCountAlloc()
-	{
-
-	}
-
-	// construct with custom deleter and allocatore
+	// construct with custom deleter and allocator
 	RefCountAlloc(T* ptr, Deleter d, const Allocator& alloc) : RefCountBase(ptr), m_alloc(alloc)
 	{
-		refType *ref = m_alloc.allocate(1);
-		m_alloc.construct(ref, 1);
 	}
 
 	~RefCountAlloc()
 	{
-		AllocType allocT = m_alloc;
-		allocT.destroy(this);
-		allocT.deallocate(this, 1);
 	}
 
 private:
 	// Allocator
-	AllocType m_alloc;
+	Allocator m_alloc;
 
 	// Deleter
 	Deleter m_d;

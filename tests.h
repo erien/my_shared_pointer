@@ -53,59 +53,59 @@ struct TestDeleter
 	}
 };
 
-template <class T>
-class TestAllocator
-{
-public:
+//template <class T>
+//class TestAllocator
+//{
+//public:
+//
+//	typedef T value_type;
+//
+//	TestAllocator(/*ctor args*/)
+//	{
+//		std::cout << "allocator constructor" << std::endl;
+//	}
+//	
+//	template <class U> 
+//	TestAllocator(const TestAllocator<U>& other)
+//	{
+//		std::cout << "allocator constructor" << std::endl;
+//	}
+//	
+//	T* allocate(std::size_t n)
+//	{
+//		T *p ;
+//		return p;
+//	}
+//
+//	void construct(T* p, std::size_t n)
+//	{
+//	}
+//
+//	void destroy(T* p)
+//	{
+//	}
+//	
+//	void deallocate(T* p, std::size_t n)
+//	{
+//		delete p;
+//	}
+//
+//	template <class U>
+//	struct rebind
+//	{
+//		typedef TestAllocator<U> other;
+//	};
+//};
 
-	typedef T value_type;
-
-	TestAllocator(/*ctor args*/)
-	{
-		std::cout << "allocator constructor" << std::endl;
-	}
-	
-	template <class U> 
-	TestAllocator(const TestAllocator<U>& other)
-	{
-		std::cout << "allocator constructor" << std::endl;
-	}
-	
-	T* allocate(std::size_t n)
-	{
-		T *p = new T();
-		return p;
-	}
-
-	void construct(T* p, std::size_t n)
-	{
-	}
-
-	void destroy(T* p)
-	{
-	}
-	
-	void deallocate(T* p, std::size_t n)
-	{
-		delete p;
-	}
-
-	template <class U>
-	struct rebind
-	{
-		typedef TestAllocator<U> other;
-	};
-};
-
-template <class T, class U>
-bool operator==(const TestAllocator<T>&, const TestAllocator<U>&)
-{
-}
-
-template <class T, class U>
-bool operator!=(const TestAllocator<T>&, const TestAllocator<U>&)
-{
-}
+//template <class T, class U>
+//bool operator==(const TestAllocator<T>&, const TestAllocator<U>&)
+//{
+//}
+//
+//template <class T, class U>
+//bool operator!=(const TestAllocator<T>&, const TestAllocator<U>&)
+//{
+//}
 
 // print out success
 void testPassed(std::string testName = "unnamed");
